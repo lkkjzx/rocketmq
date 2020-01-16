@@ -89,6 +89,7 @@ public class TopicPublishInfo {
     }
 
     public MessageQueue selectOneMessageQueue() {
+        // ThreadLocalIndex+1 取模
         int index = this.sendWhichQueue.getAndIncrement();
         int pos = Math.abs(index) % this.messageQueueList.size();
         if (pos < 0)

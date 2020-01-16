@@ -1022,6 +1022,12 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
         this.retryTimesWhenSendFailed = retryTimesWhenSendFailed;
     }
 
+    /**
+     *  broker的netty server会起两个通信服务。
+     *  两个服务除了服务的端口号不一样，其他都一样。其中一个的端口（配置端口-2）作为vip通道，
+     *  客户端可以启用本设置项把发送消息此vip通道。
+     * @return
+     */
     public boolean isSendMessageWithVIPChannel() {
         return isVipChannelEnabled();
     }

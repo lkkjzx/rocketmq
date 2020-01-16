@@ -1359,16 +1359,30 @@ public class MQClientAPIImpl {
         return getTopicRouteInfoFromNameServer(topic, timeoutMillis, true);
     }
 
+    /**
+     * 根据Topic从nameSrv获取 TopicRouteData
+     * @param topic
+     * @param timeoutMillis
+     * @param allowTopicNotExist
+     * @return
+     * @throws MQClientException
+     * @throws InterruptedException
+     * @throws RemotingTimeoutException
+     * @throws RemotingSendRequestException
+     * @throws RemotingConnectException
+     */
     public TopicRouteData getTopicRouteInfoFromNameServer(final String topic, final long timeoutMillis,
         boolean allowTopicNotExist) throws MQClientException, InterruptedException, RemotingTimeoutException, RemotingSendRequestException, RemotingConnectException {
         GetRouteInfoRequestHeader requestHeader = new GetRouteInfoRequestHeader();
         requestHeader.setTopic(topic);
 
+        // 根据Topic获取远程 封装远程请求命令
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.GET_ROUTEINTO_BY_TOPIC, requestHeader);
-
+        // 执行invokeSync 进行通信，获取执行结果,其中remotingClient为抽象接口，具体由netty实现进行远程调用 TODO 具体看下远程调用相关的实现
         RemotingCommand response = this.remotingClient.invokeSync(null, request, timeoutMillis);
         assert response != null;
         switch (response.getCode()) {
+            // Topic 不存在
             case ResponseCode.TOPIC_NOT_EXIST: {
                 if (allowTopicNotExist && !topic.equals(MixAll.AUTO_CREATE_TOPIC_KEY_TOPIC)) {
                     log.warn("get Topic [{}] RouteInfoFromNameServer is not exist value", topic);
@@ -1376,6 +1390,7 @@ public class MQClientAPIImpl {
 
                 break;
             }
+            // Topic存在，根据二进制返回相应的TopicRouteData
             case ResponseCode.SUCCESS: {
                 byte[] body = response.getBody();
                 if (body != null) {
@@ -1385,7 +1400,7 @@ public class MQClientAPIImpl {
             default:
                 break;
         }
-
+        // 异常
         throw new MQClientException(response.getCode(), response.getRemark());
     }
 
